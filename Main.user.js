@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix Favourites Page
 // @namespace    https://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Fixes the favourite page on roblox
 // @author       Haydz6
 // @match        https://www.roblox.com/discover#/sortName/v2/Favorites
@@ -17,63 +17,63 @@ const CurrentItems = AssetsExplorer.FirstChild.getElementByClassName("tab-conten
 const List = CurrentItems.getElementFromId("assetsItems")
 
 function CreateItemContainer(Title, URL, ImageURL, ID){
-    const div = List.createElement("div")
-    div.class = "grid-item-container game-card-container"
-    div["data-testid"] = "game-title"
+  const div = List.createElement("div")
+  div.class = "grid-item-container game-card-container"
+  div["data-testid"] = "game-title"
       
-    const GameCardLink = div.createElement("a")
-    GameCardLink.class = "game-card-link"
-    GameCardLink.href = URL
-    GameCardLink.id = ID
+  const GameCardLink = div.createElement("a")
+  GameCardLink.class = "game-card-link"
+  GameCardLink.href = URL
+  GameCardLink.id = ID
       
-    const Thumbnail = GameCardLink.createElement("span")
-    Thumbnail.class = "thumbnail-2d-container game-card-thumbnail-container"
+  const Thumbnail = GameCardLink.createElement("span")
+  Thumbnail.class = "thumbnail-2d-container game-card-thumbnail-container"
     
-    const ThumbnailImage = Thimbnail.createElement("img")
-    ThumbnailImage.src = ImageURL
-    ThumbnailImage  .alt = Title
-    ThumbnailImage.title = Title
+  const ThumbnailImage = Thimbnail.createElement("img")
+  ThumbnailImage.src = ImageURL
+  ThumbnailImage  .alt = Title
+  ThumbnailImage.title = Title
       
-    const TitleDiv = GameCardLink.createElement("div")
-    TitleDiv.class = "game-card-name game-name-title"
-    TitleDiv.title = Title
-    TitleDiv.data = Title
+  const TitleDiv = GameCardLink.createElement("div")
+  TitleDiv.class = "game-card-name game-name-title"
+  TitleDiv.title = Title
+  TitleDiv.data = Title
       
-    return div
-  }
+  return div
+}
   
-  function ParsePage(Page){
-      const Data = Page?.Data
-      const Items = Data?.Items
+function ParsePage(Page){
+  const Data = Page?.Data
+  const Items = Data?.Items
 
-      if (!Items) {
-        return true
-      }
+  if (!Items) {
+    return true
+  } 
 
-      if (Items.length == 0 ){
-        return true
-      }
-
-      for (let i = 0; i < Items.length; i++){
-        const Item = Items[i]
-        const Place = Item.Item
-
-        CreateItemContainer(Place.Name, Place.AbsoluteURL, Place.Thumbnail.Url, Place.AssetId.toString())
-      }
+  if (Items.length == 0 ){
+    return true
   }
-  
-  function RequestFunc(URL, Method){
-      return fetch(URL, {method: Method})
+
+  for (let i = 0; i < Items.length; i++){
+    const Item = Items[i]
+    const Place = Item.Item
+
+    CreateItemContainer(Place.Name, Place.AbsoluteURL, Place.Thumbnail.Url, Place.AssetId.toString())
   }
+}
   
-  async function StartLoop(PageNumber, UserId){
-      const Data = (await RequestFunc(`https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=${PageNumber}&userId=${UserId}`)).json()
-      if (ParsePage(Data)) {
-        return
-      }
+function RequestFunc(URL, Method){
+  return fetch(URL, {method: Method})
+}
+  
+async function StartLoop(PageNumber, UserId){
+  const Data = (await RequestFunc(`https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=${PageNumber}&userId=${UserId}`)).json()
+  if (ParsePage(Data)) {
+    return
+  }
       
-      StartLoop(PageNumber + 1)
-  }
+  StartLoop(PageNumber + 1)
+}
   
   console.log("Starting favourite fix!")
   StartLoop(1)
