@@ -75,4 +75,5 @@ function CreateItemContainer(Title, URL, ImageURL, ID){
       StartLoop(PageNumber + 1)
   }
   
+  console.log("Starting favourite fix!")
   StartLoop(1)
