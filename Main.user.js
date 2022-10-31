@@ -62,14 +62,12 @@ function CreateItemContainer(Title, URL, ImageURL, ID){
       }
   }
   
-  function Request(URL, Method){
-      https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=2&userId=51787703
-      
-      fetch(URL, {method: Method})
+  function RequestFunc(URL, Method){
+      return fetch(URL, {method: Method})
   }
   
-  function StartLoop(PageNumber, UserId){
-      const Data = Request(`https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=${PageNumber}&userId=${UserId}`)
+  async function StartLoop(PageNumber, UserId){
+      const Data = (await RequestFunc(`https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=${PageNumber}&userId=${UserId}`)).json()
       if (ParsePage(Data)) {
         return
       }
