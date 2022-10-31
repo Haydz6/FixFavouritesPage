@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Fix Favourites Page
 // @namespace    https://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  Fixes the favourite page on roblox
 // @author       Haydz6
 // @match        https://www.roblox.com/discover#/sortName/v2/Favorites
