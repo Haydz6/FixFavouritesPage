@@ -94,8 +94,6 @@ function CreateItemContainer(Title, URL, ImageURL, ID, LikeRatio, Players){
   
   List.appendChild(div)
 
-  console.log(Title)
-
   return div
 }
 
@@ -150,8 +148,6 @@ async function GetUniversesInfo(Universes){
   const Likes = await GetUniversesLikes(Universes)
   const Lookup = {}
 
-  console.log(Likes)
-
   for (let i = 0; i < Data.length; i++){
     const Item = Data[i]
     Lookup[Item.id] = Item
@@ -185,8 +181,6 @@ async function ParsePage(Page){
 
   const UniversesInfo = await GetUniversesInfo(Universes)
 
-  console.log(UniversesInfo)
-
   for (let i = 0; i < Items.length; i++){
     const Item = Items[i]
     const Place = Item.Item
@@ -205,8 +199,6 @@ async function GetPage(){
 
   const Data = await RequestFunc(`https://www.roblox.com/users/favorites/list-json?assetTypeId=9&itemsPerPage=100&pageNumber=${CurrentPage}&userId=${UserId}`)
 
-  console.log(Data)
-
   if (await ParsePage(Data)) {
     ReachedEnd = true
   }
@@ -217,7 +209,6 @@ async function GetPage(){
 await WaitForClass("grid-item-container game-card-container")
 
 List.replaceChildren()
-console.log("going for loop")
 GetPage()
 
 window.onscroll = function(){
