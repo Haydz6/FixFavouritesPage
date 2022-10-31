@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name         New Userscript
+// @name         Fix Favourites Page
 // @namespace    https://tampermonkey.net/
 // @version      0.1
-// @description  try to take over the world!
-// @author       You
+// @description  Fixes the favourite page on roblox
+// @author       Haydz6
 // @match        https://www.roblox.com/discover#/sortName/v2/Favorites
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=roblox.com
 // @grant        none
