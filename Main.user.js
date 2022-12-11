@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Fix Favourites Page
-// @version      1.0
+// @version      2.0
 // @description  Fixes the favourite page on roblox
 // @author       Haydz6
 // @match        https://www.roblox.com/discover*
@@ -39,7 +39,7 @@ async function WaitForClass(ClassName){
 
 const List = await WaitForClass("game-grid")
 
-function CreateItemContainer(Title, URL, ImageURL, ID, LikeRatio, Players){
+function CreateItemContainer(Title, URL, ImageURL, ID){
   const div = document.createElement("div")
   div.className = "grid-item-container game-card-container"
   div.setAttribute("data-testid", "game-title")
@@ -70,14 +70,14 @@ function CreateItemContainer(Title, URL, ImageURL, ID, LikeRatio, Players){
   
   const VotePercentageLabel = document.createElement("span")
   VotePercentageLabel.className = "info-label vote-percentage-label"
-  VotePercentageLabel.innerText = LikeRatio && LikeRatio+"%" || "--"
+  VotePercentageLabel.innerText = "--"
   
   const IconPlayingGray = document.createElement("span")
   IconPlayingGray.className = "info-label icon-playing-counts-gray"
   
   const PlayingCountsLabel = document.createElement("span")
   PlayingCountsLabel.className = "info-label playing-counts-label"
-  PlayingCountsLabel.innerText = Players >= 1000 && `${Math.floor(Players/100)/10}K` || Players || Players == 0 && "0" || "--"
+  PlayingCountsLabel.innerText = "--"
 
   GameCardInfo.appendChild(IconVotesGray)
   GameCardInfo.appendChild(VotePercentageLabel)
@@ -94,7 +94,15 @@ function CreateItemContainer(Title, URL, ImageURL, ID, LikeRatio, Players){
   
   List.appendChild(div)
 
-  return div
+  async function UpdateLikes(LikeRatio){
+    VotePercentageLabel.innerText = LikeRatio && LikeRatio+"%" || "--"
+  }
+
+  async function UpdatePlayerCount(PlayerCount){
+    PlayingCountsLabel.innerText = PlayerCount >= 1000 && `${Math.floor(PlayerCount/100)/10}K` || PlayerCount || PlayerCount == 0 && "0" || "--"
+  }
+
+  return [UpdateLikes, UpdatePlayerCount]
 }
 
 async function RequestFunc(URL, Method){
@@ -125,6 +133,18 @@ async function GetUniversesLikes(Universes){
   for (let i = 0; i < Data.length; i++){
     const Item = Data[i]
     Lookup[Item.id] = Item
+
+    if (Item.downVotes == 0){
+      if (Item.upVotes == 0) {
+        Item.LikeRatio = 0
+        continue
+      }
+
+      Item.LikeRatio = 100
+      continue
+    }
+
+    Item.LikeRatio = Math.floor((Item.upVotes / (Item.upVotes+Item.downVotes))*100)
   }
 
   return Lookup
@@ -145,17 +165,12 @@ async function GetUniversesInfo(Universes){
 
   if (!Data) return
 
-  const Likes = await GetUniversesLikes(Universes)
+  //const Likes = await GetUniversesLikes(Universes)
   const Lookup = {}
 
   for (let i = 0; i < Data.length; i++){
     const Item = Data[i]
     Lookup[Item.id] = Item
-
-    if (Likes){
-      const LikeItem = Likes[Item.id]
-      Item.LikeRatio = Math.floor((LikeItem.upVotes / (LikeItem.upVotes+LikeItem.downVotes))*100)
-    }
   }
 
   return Lookup
@@ -169,7 +184,7 @@ async function ParsePage(Page){
     return true
   }
 
-  if (Items.length == 0 ){
+  if (Items.length == 0){
     return true
   }
 
@@ -179,16 +194,34 @@ async function ParsePage(Page){
     Universes.push(Items[i].Item.UniverseId)
   }
 
-  const UniversesInfo = await GetUniversesInfo(Universes)
+  const LikesCallbackLookup = {}
+  const PlayerCountCallbackLookup = {}
 
   for (let i = 0; i < Items.length; i++){
     const Item = Items[i]
     const Place = Item.Item
 
-    const Info = UniversesInfo?.[Place.UniverseId]
+    const [LikesCallback, PlayerCountCallback] = CreateItemContainer(Place.Name, Place.AbsoluteUrl, Convert110pxTo150pxImageURL(Item.Thumbnail.Url), Place.AssetId.toString())
 
-    CreateItemContainer(Place.Name, Place.AbsoluteUrl, Convert110pxTo150pxImageURL(Item.Thumbnail.Url), Place.AssetId.toString(), Info?.LikeRatio, Info?.playing)
+    LikesCallbackLookup[Place.UniverseId] = LikesCallback
+    PlayerCountCallbackLookup[Place.UniverseId] = PlayerCountCallback
   }
+
+  GetUniversesInfo(Universes).then(function(UniversesInfo){
+    for (const [UniverseId, Info] of Object.entries(UniversesInfo)){
+      if (Info){
+        PlayerCountCallbackLookup[UniverseId](Info?.playing)
+      }
+    }
+  })
+
+  GetUniversesLikes(Universes).then(function(AllLikes){
+    for (const [UniverseId, Likes] of Object.entries(AllLikes)){
+      if (Likes){
+        LikesCallbackLookup[UniverseId](Likes.LikeRatio)
+      }
+    }
+  })
 }
 
 async function GetPage(){
